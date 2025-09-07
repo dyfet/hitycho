@@ -153,11 +153,11 @@ protected:
     std::atomic<bool> closed_{false};
 
     virtual void wait(lock_t& lock) {
-        output_.wait(lock, [&] { return count_ > 0; });
+        output_.wait(lock, [&] { return closed_ || count_ > 0; });
     }
 
     virtual void full(lock_t& lock) {
-        input_.wait(lock, [&] { return count_ < S; });
+        input_.wait(lock, [&] { return closed_ || count_ < S; });
     }
 
     virtual void drop([[maybe_unused]] const T& obj) {}
