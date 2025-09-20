@@ -18,6 +18,12 @@ This is a generic portable convertable flexible binary data array object class
 with supporting utility conversions for/to B64 and hex strings that I have
 always wanted ever since using Qt QByteArray.
 
+## biffer.hpp
+
+Memory based stream buffering. This lets one parse memory buffers or address
+spaces with stream operators. The format\_buffer provides a healpless and fast
+alternative to std::strstream.
+
 ## common.hpp
 
 Some very generic, universal, miscellaneous templates and functions. This also

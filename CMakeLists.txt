@@ -2,7 +2,7 @@
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 cmake_minimum_required(VERSION 3.16.0)
-project(HiTycho VERSION 0.0.1 LANGUAGES CXX)
+project(HiTycho VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -38,6 +38,11 @@ add_executable(test_binary test/binary.cpp src/common.hpp src/binary.hpp)
 add_test(NAME test-binary COMMAND test_binary)
 target_include_directories(test_binary PRIVATE ${HPX_APPLICATION_INCLUDE_DIRS})
 target_link_libraries(test_binary PRIVATE HPX::hpx HPX::wrap_main)
+
+add_executable(test_buffer test/buffer.cpp src/common.hpp src/buffer.hpp)
+add_test(NAME test-buffer COMMAND test_buffer)
+target_include_directories(test_buffer PRIVATE ${HPX_APPLICATION_INCLUDE_DIRS})
+target_link_libraries(test_buffer PRIVATE HPX::hpx HPX::wrap_main)
 
 add_executable(test_expected test/expected.cpp src/common.hpp src/expected.hpp)
 add_test(NAME test-expected COMMAND test_expected)
