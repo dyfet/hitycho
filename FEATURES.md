@@ -1,16 +1,11 @@
 # Features
 
-Busuto consists of a series of C++ 20 header files that typically are installed
-under and included from /usr/include/busuto and linkable library code that is
-focused on core functionality I use in server application development. Some of
-these are templated headers only, and some require linking with the busuto
-runtime library this package builds. These currently include:
+HiTycho consists of a series of individual C++ 20 header files that typically
+are installed under and included from /usr/include/hitycho for use in HPX
+applications. Some of these are template headers, but all are meant to be used
+directly inline. These currently include:
 
-NOTE: Busuto indeed can be built for Microsoft Windows if you use MingW32 with
-posix support. Some features and functionality may be disabled when building
-for Windows. There is no support for building Windows targets with MSVC.
-
-## atomic.hpp
+## atomics.hpp
 
 Atomic types and lockfree data structures. This includes lockfree stack,
 buffer, and unordered dictionary implementations which are something like C#
@@ -19,10 +14,15 @@ an implementation of atomic\_ref that should be similar to the C++20 one.
 
 ## binary.hpp
 
-This is the generic portable convertible flexible binary data array object
-class and supporting utility conversions for/to B64 text, hex, and utf8
-strings, that I have always wanted ever since using Qt QByteArray. This alone
-drove my decision to migrate to C++20 or later for future projects.
+This is a generic portable convertible flexible binary data array object class
+with supporting utility conversions for/to B64 and hex strings that I have
+always wanted ever since using Qt QByteArray.
+
+## buffer.hpp
+
+Memory based stream buffering. This lets one parse memory buffers or address
+spaces with stream operators. The format\_buffer provides a heap=less and fast
+alternative to std::strstream.
 
 ## common.hpp
 
@@ -30,11 +30,23 @@ Some very generic, universal, miscellaneous templates and functions. This also
 is used to introduce new language-like "features", and is included in every
 other header.
 
+## expected.hpp
+
+A C++17 simplified emulation of C++23 std::expected using std::variant.
+
+## finalize.hpp
+
+This offers the ability to finalize scopes thru a compiler optimized template
+function. While scope\_defer is somewhat analogous to finalize in C# and golang
+defer there is also a "scope\_detach" which then executes the finalize in a
+separate HPX thread, thereby not blocking the function return itself. This
+version of defer feels truer to the ``spirit'' of HPX though obviously you will
+want to consider the scope and lifetimes of any captures or arguments used.
+
 ## fsys.hpp
 
-This may have local extensions to C++ filesystem.hpp for portable operations
-The most interesting are functional parsing of generic text files and directory
-trees in a manner much like Ruby closures offer.
+Some useful and functional extensions to filesystem and file handling
+operations.
 
 ## locking.hpp
 
@@ -42,13 +54,13 @@ This offers a small but interesting subset of ModernCLI classes that focus on
 the idea that locking is access. This embodies combining a unique or shared
 mutex with a private object that can only be accessed thru scope guards when a
 lock is acquired. This offers consistent access behavior for lock protected
-objects. The locking containers use protected data so that you can derive a
-class with member functions that can directly access or modify atomic fields or
-counters inside the data object without locking.
+objects.
 
-## output.hpp
-
-Some output helpers I commonly use as well providing simple logging support.
+Note that for locking semantics to work with condition variables there is an
+public accessible unlock method associated with exclusive_ptr and reader_ptr.
+It's direct manual use probably would create race windows if the data ptr is
+also accessed and relied on. In the future I may add additional owning check
+along with existing ptr_ check for accessing data from these scoped pointers.
 
 ## networks.hpp
 
@@ -71,38 +83,13 @@ in that you can have a poll or select wait on an event notification handle.
 
 ## print.hpp
 
-Performs print formatting, including output to existing streams such as output
-logging. Includes helper functions for other busuto types. Because this header
-has to include other types, it may include a large number of headers.
-
-## process.hpp
-
-Manage and spawn child processes from C++. Manage file sessions with pipes,
-essentially like popen offers.
+Format and produce application output thru streams.
 
 ## resolver.hpp
 
-This provides an asynchronous network resolver that uses futures with support
-for reverse address lookup. It also provides a stl compatible container for
-examining network resolver addresses.
-
-## safe.hpp
-
-Safe memory operations and confined memory input/output stream buffers that can
-be used to apply C++ stream operations directly on a block of memory. This
-allows memory blocks, such as from UDP messages, to be manipulated in a very
-manner similar to how streams.hpp may be used to parse and produce TCP
-session content with full support for C++ stream operators and formatting.
-
-Safe slots is meant to ba a pure slot object for (lockable) data structures in
-memory. It is not meant to be used as a value store like std::array. Offset
-indexing allows the index to be a "meaningful" value rather than a 0 offset
-index. This lets code use an index of 0 to indicate an invalid index.
-
-Safe alsoprovides memory safe C char ptr operations. There is also a fixed
-sized (templated) stringbuf class that lets you create a string type that is
-very friendly to integration with C strings. A new memory safe version of
-getline is provided to read lines into a stringbuf or a fixed char array.
+A pure hpx native async resolver that does not rely on Boost, asio, or any
+external packages. Mostly, like timers, it takes advantage of the fact that it
+is very cheap to spin up lots of parallel threads in hpx if you need to.
 
 ## scan.hpp
 
@@ -112,49 +99,43 @@ low level scan functions will eventually be driven from a scan template class
 that has a format string much like format. Other upper level utility functions
 will also be provided.
 
-## services.hpp
-
-Support for writing service applications in C++. This includes a timer system
-as well as support for task oriented tread pools and queue based task event
-dispatch.
-
 ## socket.hpp
 
-Generic basic header to wrap platform portable access to address storage for
-low level BSD sockets api.
-
-## streams.hpp
-
-This offers enhanced, performant full duplex system streaming tied to and
-optimized for socket descriptor based I/O. Among the enhancements over the C++
-streambuf and iostream system is support for high performance zero-copy buffer
-read operations. Stream buffering is done with sized templates so that they
-can appear in stack space without heap allocations.
+Generic basic header to wrap access to address storage for low level BSD
+sockets api. This makes it easier to manage, manipulate, and convert socket
+addresses to strings.
 
 ## strings.hpp
 
-Generic string utility functions. Many of these are much easier to use and much lighter weight than boost algorithm versions, and are borrowed from moderncli.
+Various string utilities. This includes a mix of the HPX string utils and some
+advanced templated string utils from moderncli.
 
 ## sync.hpp
 
-This introduces scoped guards for common C++17 and C++20 thread synchronization
-primitives. I also provide a golang-like wait group. The use cases for golang
-wait groups and the specific race conditions they help to resolve apply equally
-well to detached C++ threads.
+This introduces scoped guards for common C++17 HPX task synchronization classes
+and adds some special wrapper versions for semaphores. The golang-like
+ModernCLI wait group is also provided for HPX threads. The use cases for golang
+waitgroups and the specific race conditions they help to resolve apply equally
+well to detached HPX threads.
 
 ## system.hpp
 
 Just some convenient C++ wrappers around system handles (file descriptors). It
 may add some process level functionality eventually, too. It is also meant to
-include the hpx init functions and be a basic application main include. The
-low level handle system is socket and tty aware, making system streams in
-streams.hpp also aware.
+include the hpx init functions and be a basic application main include.
 
 ## threads.hpp
 
-Convenient base header for threading support in other headers. A common thread
-class is used based on std::jthread. As the BSD libraries do not include
-jthread, a built-in substitute is offered for those platforms.
+Common threading and simple support for parallel hpx function dispatch.
+
+## timer.hpp
+
+This is a timer system that takes advantage of the ability of HPX to spawn off
+thousands of threads cheaply without needing thread pools or asio. Rather than
+using an execute queue of lambdas on a single OS timer thread each timer has
+it's own detached HPX thread instance for both one shot and periodic tasks.
+These are executed as functional expressions thru templating so the compiler
+can also optimize the call site.
 
 ## linting
 
