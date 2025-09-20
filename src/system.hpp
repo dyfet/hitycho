@@ -8,32 +8,15 @@
 
 #include <chrono>
 #include <memory>
-#include <cstdio>
-#include <cstdlib>
 #include <ctime>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 
 #include <hpx/hpx_init.hpp>
 
-namespace hitycho::util {
-struct file_closer {
-    void operator()(FILE *f) const noexcept {
-        if (f) fclose(f);
-    }
-};
-
-struct pipe_closer {
-    void operator()(FILE *f) const noexcept {
-        if (f) pclose(f);
-    }
-};
-} // namespace hitycho::util
-
 namespace hitycho::system {
-using file_ptr = std::unique_ptr<FILE, hitycho::util::file_closer>;
-using pipe_ptr = std::unique_ptr<FILE, hitycho::util::pipe_closer>;
 using timepoint = hpx::chrono::steady_clock::time_point;
 using duration = hpx::chrono::steady_clock::duration;
 using args_t = std::vector<std::string>;
@@ -171,12 +154,26 @@ inline auto gmt_time(const std::time_t& time) noexcept {
     return local;
 }
 
-inline auto make_file(const std::string& cmd, const std::string& mode = "r") {
-    return system::file_ptr(fopen(cmd.c_str(), mode.c_str()));
+inline auto is_dir(const std::string& path) noexcept -> bool {
+    struct stat ino{};
+    if (stat(path.c_str(), &ino))
+        return false;
+
+    if (S_ISDIR(ino.st_mode))
+        return true;
+
+    return false;
 }
 
-inline auto make_pipe(const std::string& cmd, const std::string& mode = "r") {
-    return system::pipe_ptr(popen(cmd.c_str(), mode.c_str()));
+inline auto is_file(const std::string& path) noexcept -> bool {
+    struct stat ino{};
+    if (stat(path.c_str(), &ino))
+        return false;
+
+    if (S_ISREG(ino.st_mode))
+        return true;
+
+    return false;
 }
 }; // namespace hitycho::system
 

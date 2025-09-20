@@ -9,6 +9,7 @@
 #include <fstream>
 #include <algorithm>
 #include <filesystem>
+#include <dirent.h>
 
 #if defined(__OpenBSD__)
 #define stat64 stat   // NOLINT
@@ -17,41 +18,53 @@
 
 namespace hitycho::fsys {
 using namespace std::filesystem;
+using dirent_t = struct dirent *;
 
-class file_t final {
+class dir_t final {
 public:
-    explicit file_t(FILE *file) : file_(system::file_ptr(file)) {}
-    explicit file_t(system::file_ptr&& file) : file_(std::move(file)) {}
+    dir_t() = default;
+    dir_t(const dir_t& from) = delete;
+    dir_t(dir_t&& from) noexcept : dir_(std::exchange(from.dir_, nullptr)) {}
+    explicit dir_t(int handle) noexcept : dir_(fdopendir(handle)) {}
+    explicit dir_t(const std::string& path) noexcept : dir_(opendir(path.c_str())) {}
 
-    operator FILE *() const noexcept { return file_.get(); }
-    explicit operator bool() const noexcept { return is_open(); }
+    ~dir_t() { release(); }
+
+    operator bool() const noexcept { return is_open(); }
     auto operator!() const noexcept { return !is_open(); }
-    auto is_open() const noexcept -> bool { return file_.get() != nullptr; }
+    auto operator*() noexcept -> dirent_t { return dir_ ? readdir(dir_) : nullptr; }
+    auto operator=(const dir_t& from) -> dir_t& = delete;
+
+    auto operator=(dir_t&& from) noexcept -> dir_t& {
+        release();
+        dir_ = std::exchange(from.dir_, nullptr);
+        return *this;
+    }
+
+    auto operator=(const std::string& path) noexcept -> dir_t& {
+        release();
+        dir_ = opendir(path.c_str());
+        return *this;
+    }
+
+    auto operator=(int handle) noexcept -> dir_t& {
+        release();
+        dir_ = fdopendir(handle);
+        return *this;
+    }
+
+    auto is_open() const noexcept -> bool { return dir_ != nullptr; }
+
+    auto get() noexcept -> dirent_t { return dir_ ? readdir(dir_) : nullptr; }
 
 private:
-    system::file_ptr file_{nullptr};
+    DIR *dir_{nullptr};
+
+    void release() {
+        if (dir_)
+            ::closedir(std::exchange(dir_, nullptr));
+    }
 };
-
-class pipe_t final {
-public:
-    explicit pipe_t(system::pipe_ptr&& pipe) : pipe_(std::move(pipe)) {}
-
-    operator FILE *() const noexcept { return pipe_.get(); }
-    explicit operator bool() const noexcept { return is_open(); }
-    auto operator!() const noexcept { return !is_open(); }
-    auto is_open() const noexcept -> bool { return pipe_.get() != nullptr; }
-
-private:
-    system::pipe_ptr pipe_{nullptr};
-};
-
-inline auto make_file(const std::string& path, const std::string& mode = "rb") {
-    return file_t(system::file_ptr(fopen(path.c_str(), mode.c_str())));
-}
-
-inline auto make_pipe(const std::string& cmd, const std::string& mode = "r") {
-    return pipe_t(system::make_pipe(cmd, mode));
-}
 } // namespace hitycho::fsys
 
 namespace hitycho {
@@ -85,15 +98,6 @@ inline auto scan_file(const fsys::path& path, Func func) {
 }
 
 template <typename Func>
-inline auto scan_command(const std::string& cmd, Func func, std::size_t size = 0) {
-    auto pipe = system::make_pipe(cmd, "r");
-    if (!pipe.get()) return std::size_t(0);
-
-    auto count = scan_file(pipe.get(), func, size);
-    return count;
-}
-
-template <typename Func>
 inline auto scan_directory(const fsys::path& path, Func func) {
     using Entry = const fsys::directory_entry&;
     static_assert(std::is_invocable_v<Func, Entry>, "Func must be callable");
@@ -111,5 +115,16 @@ inline auto scan_recursive(const fsys::path& path, Func func) {
 
     auto dir = fsys::recursive_directory_iterator(path, fsys::directory_options::skip_permission_denied);
     return std::count_if(begin(dir), end(dir), func);
+}
+
+template <typename Func>
+inline auto scan_prefix(const std::string& path, Func func) {
+    std::size_t count = 0;
+    fsys::dir_t dir(path);
+    fsys::dirent_t entry{nullptr};
+    while ((entry = dir.get()) != nullptr) {
+        func(entry);
+    }
+    return count;
 }
 } // namespace hitycho
