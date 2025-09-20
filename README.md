@@ -1,17 +1,17 @@
 # About HiTycho
 
 HiTycho is my high performance / HPC template library for parallel computing
-in C++ using HPX. It implies that Busudo is ``Low Tycho``. Basically, it is a
-carefully curated re-thinking of Busudo and ModernCLI headers re-written
+in C++ using HPX. It implies that Busuto is ``Low Tycho``. Basically, it is a
+carefully curated re-thinking of Busuto and ModernCLI headers re-written
 specifically for use with the HPX runtime for writing parallel computing and
 distributed super-computing applications. HiTycho is purely header-only
-specifically to avoid injecting any optional hpx libry components a given
+specifically to avoid injecting any optional hpx library components a given
 header may use as a mandated link-time dependency.
 
 While both ModernCLI and HiTycho are header-only C++ libraries, there are also
 differences in how this package is maintained. For example, all headers use
 hitycho/common.hpp and individual header files are not intended to be purely
-stand-alone like they are in ModernCLI. This also conforms with Busudo. Some
+stand-alone like they are in ModernCLI. This also conforms with Busuto. Some
 stylistic aspects and practices are also meant to better fit with the HPX
 runtime. C++17 Type traits and other compiler assisted code generation is used
 by default and more commonly than were in the ModernCLI codebase.
@@ -27,7 +27,7 @@ compilers explicitly supported. It may be possible to build HPX on Microsoft
 Windows, but it does not seem a platform anyone would likely use for practical
 HPC work. Not supporting Microsoft Windows has made some HiTycho headers much
 simpler than their ModernCLI counterparts. HiTycho will become possible to
-usewwith Kakusu for cryptographic support. Kakusu offers Consistent hashing
+use with Kakusu for cryptographic support. Kakusu offers Consistent hashing
 rings which can be used to help build distributed computing services.
 
 ## Dependencies
@@ -40,7 +40,7 @@ AlpineLinux.
 ## Distributions
 
 Distributions of this package are provided as detached source tarballs made
-from a tagged release from our public githubrepository or by building the dist
+from a tagged release from our public github repository or by building the dist
 target. These stand-alone detached tarballs can be used to make packages for
 many GNU/Linux systems, and for BSD ports. They may also be used to build and
 install the software directly on a target platform.

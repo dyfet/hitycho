@@ -8,20 +8,20 @@ directly inline. These currently include:
 ## atomics.hpp
 
 Atomic types and lockfree data structures. This includes lockfree stack,
-buffer, and unordered dictionary implimentations which are something like C#
+buffer, and unordered dictionary implementations which are something like C#
 ConcurrentStack, ConcurrentDictionary, and ConcurrentQueue. It also includes
-an implimentation of atomic\_ref that should be similar to the C++20 one.
+an implementation of atomic\_ref that should be similar to the C++20 one.
 
 ## binary.hpp
 
-This is a generic portable convertable flexible binary data array object class
+This is a generic portable convertible flexible binary data array object class
 with supporting utility conversions for/to B64 and hex strings that I have
 always wanted ever since using Qt QByteArray.
 
-## biffer.hpp
+## buffer.hpp
 
 Memory based stream buffering. This lets one parse memory buffers or address
-spaces with stream operators. The format\_buffer provides a healpless and fast
+spaces with stream operators. The format\_buffer provides a heap=less and fast
 alternative to std::strstream.
 
 ## common.hpp
@@ -113,7 +113,7 @@ advanced templated string utils from moderncli.
 ## sync.hpp
 
 This introduces scoped guards for common C++17 HPX task synchronization classes
-and adds some special wrapper versions for sempahores. The golang-like
+and adds some special wrapper versions for semaphores. The golang-like
 ModernCLI wait group is also provided for HPX threads. The use cases for golang
 waitgroups and the specific race conditions they help to resolve apply equally
 well to detached HPX threads.

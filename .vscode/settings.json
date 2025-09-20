@@ -7,6 +7,15 @@
         "test_*": true
     },
     "cSpell.words": [
+<<<<<<< HEAD
+        "asio",
+        "busuto",
+        "iostreams",
+        "Kakusu",
+        "strstream",
+        "waitgroups"
+=======
         "busuto"
+>>>>>>> refs/remotes/origin/main
     ]
 }
