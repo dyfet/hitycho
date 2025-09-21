@@ -229,6 +229,35 @@ private:
     close_t exit_{[](int fd) { ::close(fd); }};
 };
 
+template <typename F, typename... Args>
+inline auto at_fork(F func, Args... args) -> pid_t {
+    auto child = fork();
+    if (!child) {
+        ::_exit(func(args...));
+    }
+    return child;
+}
+
+template <typename F, typename... Args>
+inline auto at_spawn(const system::args_t& args, std::string argv0, const system::args_t& env, F init, Args... init_args) -> pid_t {
+    if (args.empty()) return -1;
+    auto argv = system::make_argv(args);
+    if (argv0.empty())
+        argv0 = args[0];
+    auto child = fork();
+    if (!child) {
+        init(init_args...);
+        if (!env.empty()) {
+            auto envp = system::make_argv(env);
+            execvpe(argv0.c_str(), argv.get(), envp.get());
+        } else {
+            execvp(argv0.c_str(), argv.get());
+        }
+        ::_exit(-1);
+    }
+    return child;
+}
+
 inline auto make_handle(const std::string& path, int mode, int perms = 0664) {
     return handle_t(::open(path.c_str(), mode, perms));
 }

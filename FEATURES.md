@@ -122,7 +122,9 @@ well to detached HPX threads.
 
 Just some convenient C++ wrappers around system handles (file descriptors). It
 may add some process level functionality eventually, too. It is also meant to
-include the hpx init functions and be a basic application main include.
+include the hpx init functions and be a basic application main include. This
+also includes injectable functions at forking to simplify process creation. For
+example, stdio redirection and process detach can be injected in a closure. 
 
 ## threads.hpp
 
