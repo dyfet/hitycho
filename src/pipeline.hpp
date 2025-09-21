@@ -142,6 +142,8 @@ public:
     }
 
 protected:
+    static_assert(std::is_pointer_v<T> || std::is_default_constructible_v<T>,
+    "T must be a pointer or a non-deleted default constructor");
     static_assert(S > 0, "pipeline size must be positive");
     using lock_t = std::unique_lock<hpx::mutex>;
     using guard_t = std::lock_guard<hpx::mutex>;
