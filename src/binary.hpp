@@ -137,6 +137,42 @@ inline auto decode_hex(const std::string& in) -> std::vector<std::byte> {
 namespace hitycho {
 using byte_view = std::string_view;
 
+constexpr auto to_byte(std::byte b) noexcept {
+    return static_cast<uint8_t>(b);
+}
+
+constexpr auto to_byte(uint8_t u) noexcept {
+    return static_cast<std::byte>(u);
+}
+
+constexpr auto to_byte(char u) noexcept {
+    return static_cast<std::byte>(u);
+}
+
+inline auto to_byte(const uint8_t *data) {
+    return reinterpret_cast<const std::byte *>(data);
+}
+
+inline auto to_byte(uint8_t *data) {
+    return reinterpret_cast<std::byte *>(data);
+}
+
+inline auto to_byte(const char *data) {
+    return reinterpret_cast<const uint8_t *>(data);
+}
+
+inline auto to_byte(char *data) {
+    return reinterpret_cast<uint8_t *>(data);
+}
+
+inline auto to_byte(const std::byte *data) {
+    return reinterpret_cast<const uint8_t *>(data);
+}
+
+inline auto to_byte(std::byte *data) {
+    return reinterpret_cast<uint8_t *>(data);
+}
+
 class byte_array {
 public:
     byte_array() = default;
