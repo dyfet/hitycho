@@ -162,7 +162,7 @@ protected:
     }
 
     auto insert(lock_t& lock) -> bool {
-        while (count_ == S) {
+        while (!closed_ && count_ == S) {
             ++wait_;
             push_.wait(lock);
             --wait_;
@@ -174,7 +174,7 @@ protected:
     }
 
     auto remove(lock_t& lock) -> bool {
-        while (count_ == S) {
+        while (!closed_ && count_ == 0) {
             ++wait_;
             pull_.wait(lock);
             --wait_;
