@@ -167,8 +167,8 @@ protected:
             push_.wait(lock);
             --wait_;
             if (!wait_ && closed_) exit_.notify_one();
-            if (closed_) return false;
         }
+        if (closed_) return false;
         if (!count_ && wait_) pull_.notify_one();
         return true;
     }
@@ -179,8 +179,8 @@ protected:
             pull_.wait(lock);
             --wait_;
             if (!wait_ && closed_) exit_.notify_one();
-            if (closed_) return false;
         }
+        if (closed_) return false;
         if (count_ == S && wait_) push_.notify_one();
         return true;
     }
