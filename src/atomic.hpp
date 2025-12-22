@@ -550,102 +550,27 @@ public:
     }
 
     void store(T value) const noexcept {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4)
-            _InterlockedExchange(reinterpret_cast<volatile long *>(&ref), static_cast<long>(value));
-        else if constexpr (sizeof(T) == 8)
-            _InterlockedExchange64(reinterpret_cast<volatile __int64 *>(&ref), static_cast<__int64>(value));
-        else
-            ref = value; // fallback for 1- or 2-byte types (non-atomic)
-#else
         __atomic_store_n(&ref, value, __ATOMIC_SEQ_CST);
-#endif
     }
 
     auto load() const noexcept -> T {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4)
-            return static_cast<T>(_InterlockedOr(reinterpret_cast<volatile long *>(&ref), 0));
-        else if constexpr (sizeof(T) == 8)
-            return static_cast<T>(_InterlockedOr64(reinterpret_cast<volatile __int64 *>(&ref), 0));
-        else
-            return ref;
-#else
         return __atomic_load_n(&ref, __ATOMIC_SEQ_CST);
-#endif
     }
 
     auto exchange(T value) const noexcept -> T {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4)
-            return static_cast<T>(_InterlockedExchange(reinterpret_cast<volatile long *>(&ref), static_cast<long>(value)));
-        else if constexpr (sizeof(T) == 8)
-            return static_cast<T>(_InterlockedExchange64(reinterpret_cast<volatile __int64 *>(&ref), static_cast<__int64>(value)));
-        else {
-            T old = ref;
-            ref = value;
-            return old;
-        }
-#else
         return __atomic_exchange_n(&ref, value, __ATOMIC_SEQ_CST);
-#endif
     }
 
     auto compare_exchange_strong(T& expected, T value) const noexcept {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4) {
-            long original = _InterlockedCompareExchange(reinterpret_cast<volatile long *>(&ref), static_cast<long>(value), static_cast<long>(expected));
-            if (original == static_cast<long>(expected)) return true;
-            expected = static_cast<T>(original);
-            return false;
-        } else if constexpr (sizeof(T) == 8) {
-            __int64 original = _InterlockedCompareExchange64(reinterpret_cast<volatile __int64 *>(&ref), static_cast<__int64>(value), static_cast<__int64>(expected));
-            if (original == static_cast<__int64>(expected)) return true;
-            expected = static_cast<T>(original);
-            return false;
-        } else {
-            if (ref == expected) {
-                ref = value;
-                return true;
-            }
-            expected = ref;
-            return false;
-        }
-#else
         return __atomic_compare_exchange_n(&ref, &expected, value, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-#endif
     }
 
     auto fetch_add(T arg) const noexcept -> T {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4)
-            return static_cast<T>(_InterlockedExchangeAdd(reinterpret_cast<volatile long *>(&ref), static_cast<long>(arg)));
-        else if constexpr (sizeof(T) == 8)
-            return static_cast<T>(_InterlockedExchangeAdd64(reinterpret_cast<volatile __int64 *>(&ref), static_cast<__int64>(arg)));
-        else {
-            T old = ref;
-            ref += arg;
-            return old;
-        }
-#else
         return __atomic_fetch_add(&ref, arg, __ATOMIC_SEQ_CST);
-#endif
     }
 
     auto fetch_sub(T arg) const noexcept -> T {
-#if defined(_MSC_VER)
-        if constexpr (sizeof(T) == 4)
-            return static_cast<T>(_InterlockedExchangeAdd(reinterpret_cast<volatile long *>(&ref), -static_cast<long>(arg)));
-        else if constexpr (sizeof(T) == 8)
-            return static_cast<T>(_InterlockedExchangeAdd64(reinterpret_cast<volatile __int64 *>(&ref), -static_cast<__int64>(arg)));
-        else {
-            T old = ref;
-            ref -= arg;
-            return old;
-        }
-#else
         return __atomic_fetch_sub(&ref, arg, __ATOMIC_SEQ_CST);
-#endif
     }
 
 private:

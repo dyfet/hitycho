@@ -62,7 +62,7 @@ public:
         } else {
             data_[tail_] = std::move(in);
         }
-        tail_ = (tail_ - 1) % S;
+        tail_ = (tail_ + 1) % S;
         count_++;
         return true;
     }
@@ -71,7 +71,7 @@ public:
         lock_t lock(mutex_);
         if (!insert(lock)) return false;
         data_[tail_] = in;
-        tail_ = (tail_ - 1) % S;
+        tail_ = (tail_ + 1) % S;
         count_++;
         return true;
     }
@@ -90,22 +90,24 @@ public:
         const guard_t lock(mutex_);
         if (!count_) return false;
         if (count_ == S && wait_) push_.notify_one();
-        tail_ = (tail_ - 1) % S;
-        clear(data_[tail_]);
+        if (!tail_) tail_ = S;
+        tail_--;
         count_--;
+        clear(data_[tail_]);
         return true;
     }
 
     auto pop(T& out) -> bool {
         lock_t lock(mutex_);
         if (!remove(lock)) return false;
-        tail_ = (tail_ - 1) % S;
+        if (!tail_) tail_ = S;
+        tail_--;
+        count_--;
         if constexpr (std::is_pointer_v<T>) {
             out = std::exchange(data_[tail_], nullptr);
         } else {
             out = std::move(data_[tail_]);
         }
-        count_--;
         return true;
     }
 
@@ -117,7 +119,8 @@ public:
         } else {
             out = std::move(data_[head_]);
         }
-        head_ = (head_ - 1) % S;
+        if (!head_) head_ = S;
+        head_--;
         count_--;
         return true;
     }

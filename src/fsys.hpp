@@ -11,7 +11,7 @@
 #include <filesystem>
 #include <dirent.h>
 
-#if defined(__OpenBSD__)
+#ifdef __OpenBSD__
 #define stat64 stat   // NOLINT
 #define fstat64 fstat // NOLINT
 #endif
